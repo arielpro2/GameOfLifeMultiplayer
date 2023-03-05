@@ -141,8 +141,6 @@ jobs:
 
             kubernetes/deployment.yaml
 
-            kubernetes/service.yaml
-
           images: |
 
-            ghcr.io/cuongld2/vultr-cicd-githubactions:${{ github.sha }}
+            ghcr.io/arielpro2/game-of-life-multiplayer:${{ github.sha }}
