@@ -140,6 +140,8 @@ jobs:
           manifests: |
 
             kubernetes/deployment.yaml
+            
+            kubernetes/service.yaml
 
           images: |
 
