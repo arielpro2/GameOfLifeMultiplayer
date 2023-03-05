@@ -1,11 +1,22 @@
 # syntax=docker/dockerfile:1
 
+
 FROM python:3.9
+
+RUN apt-get clean \
+    && apt-get -y update
+
+RUN apt-get -y install \
+    nginx \
+    python3-dev \
+    build-essential
 
 WORKDIR /app
 
-COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
+COPY requirements.txt /app/requirements.txt
+RUN pip install -r requirements.txt --src /usr/local/src
+
 COPY . .
 
-CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0"]
+EXPOSE 5000
+CMD [ "python", "app.py" ]

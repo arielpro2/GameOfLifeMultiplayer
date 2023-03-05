@@ -40,7 +40,7 @@ spec:
 
           ports:
 
-            - containerPort: 8084
+            - containerPort: 5000
 
           env:
 
@@ -102,7 +102,7 @@ spec:
 
                   key: DB_NAME
 
-                  optional: false
+                  optional: falseO
 
       imagePullSecrets:
 
