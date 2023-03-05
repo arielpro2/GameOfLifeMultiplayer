@@ -32,7 +32,6 @@ jobs:
       - name: Install dependencies
 
         run: |
-          cd app
           
           python -m pip install --upgrade pip
           
@@ -92,6 +91,7 @@ jobs:
         uses: docker/build-push-action@v3
 
         with:
+          context: "{{defaultContext}}:app"
           push: true
           tags: |
 
