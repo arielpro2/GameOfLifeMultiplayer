@@ -84,25 +84,19 @@ jobs:
 
           password: ${{ secrets.GH_TOKEN }}
 
-
-
-      - name: Build and push the Docker image
-
-        uses: docker/build-push-action@v3
-
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
-          context: .
-          push: true
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-          tags: |
-
-            ghcr.io/arielsho/game-of-life-multiplayer:latest
-
-            ghcr.io/arielsho/game-of-life-multiplayer:${{ github.sha }}
-
-          cache-from: type=gha
-
-          cache-to: type=gha,mode=max
+      - name: Build and push Docker image
+          uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+          with:
+            context: .
+            push: true
+            tags: ${{ steps.meta.outputs.tags }}
+            labels: ${{ steps.meta.outputs.labels }}
 
   deploy:
 
