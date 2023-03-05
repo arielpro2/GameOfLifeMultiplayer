@@ -7,6 +7,7 @@ spec:
   - http:
       paths:
       - backend:
-          serviceName: "game-of-life-ingress"
-          servicePort: 5000
+          - service:
+              name: "game-of-life-ingress"
+              port: 5000
     host: "wordassociationproject.online"
