@@ -36,7 +36,7 @@ spec:
 
         - name: game-of-life
 
-          image: ghcr.io/arielsho/game-of-life-multiplayer:latest
+          image: ghcr.io/arielpro2/game-of-life-multiplayer:latest
 
           ports:
 
