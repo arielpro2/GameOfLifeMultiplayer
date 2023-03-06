@@ -14,4 +14,3 @@ spec:
               name: "game-of-life-ingress"
               port:
                 number: 5000
-    host: "wordassociationproject.online"
