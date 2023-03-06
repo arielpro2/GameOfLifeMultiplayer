@@ -2,12 +2,11 @@ apiVersion: v1
 kind: Service
 metadata:
   name: game-of-life-service
-  annotations:
-    service.beta.kubernetes.io/vultr-loadbalancer-protocol: "http"
+
 spec:
     type: LoadBalancer
     selector:
-        name: game-of-life-deployment
+        name: game-of-life
     ports:
         - name: http
           port: 80
