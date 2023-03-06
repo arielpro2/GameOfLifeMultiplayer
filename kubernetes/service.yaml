@@ -4,9 +4,10 @@ metadata:
   name: game-of-life-service
 
 spec:
+    type: LoadBalancer
     selector:
         name: game-of-life
     ports:
-        - name: "5000"
+        - name: http
           port: 5000
           targetPort: 5000
