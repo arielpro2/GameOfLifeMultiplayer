@@ -3,11 +3,13 @@ kind: Ingress
 metadata:
   name: game-of-life-ingress
 spec:
+  ingressClassName: nginx
   rules:
   - http:
       paths:
-      - backend:
-          - service:
+        - backend:
+            service:
               name: "game-of-life-ingress"
-              port: 5000
+              port:
+                number: 5000
     host: "wordassociationproject.online"
