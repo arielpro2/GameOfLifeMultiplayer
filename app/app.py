@@ -18,9 +18,11 @@ def hello_world():
 
 # main driver function
 if __name__ == '__main__':
+    i= 0
     # run() method of Flask class runs the application
     # on the local development server.
     app.run(host="0.0.0.0", port=5000)
+
 
 
 
