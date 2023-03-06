@@ -7,7 +7,9 @@ spec:
   rules:
   - http:
       paths:
-        - backend:
+        - path: /test
+          pathType: Prefix
+          backend:
             service:
               name: "game-of-life-ingress"
               port:
