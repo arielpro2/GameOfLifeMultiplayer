@@ -9,5 +9,5 @@ spec:
         name: game-of-life
     ports:
         - name: http
-          port: 5000
+          port: 80
           targetPort: 5000
