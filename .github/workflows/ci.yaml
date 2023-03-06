@@ -84,7 +84,7 @@ jobs:
       - name: Removing already deployed deployment
 
         run: |
-             kubectl delete --all pods
+             kubectl delete --all deployments
 
       - name: Deploy to the Kubernetes cluster
 

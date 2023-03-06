@@ -1,5 +1,3 @@
----
-
 apiVersion: apps/v1
 
 kind: Deployment
@@ -30,7 +28,6 @@ spec:
         app: game-of-life
 
     spec:
-      hostNetwork: true
       containers:
 
         - name: game-of-life
