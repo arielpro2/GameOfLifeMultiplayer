@@ -71,7 +71,7 @@ jobs:
 
         with:
 
-          method: service-account
+          method: service.yaml-account
 
           k8s-url: https://45e5b16e-c141-496b-9646-2e3ca5adb996.vultr-k8s.com:6443
 
@@ -99,6 +99,8 @@ jobs:
             kubernetes/deployment.yaml
             
             kubernetes/service.yaml
+            
+            kubernetes/ingress.yaml
 
           images: |
 
