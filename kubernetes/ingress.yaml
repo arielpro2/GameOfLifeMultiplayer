@@ -11,6 +11,6 @@ spec:
           pathType: Prefix
           backend:
             service:
-              name: "game-of-life-ingress"
+              name: game-of-life-service
               port:
                 number: 5000
