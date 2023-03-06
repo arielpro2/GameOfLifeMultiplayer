@@ -11,8 +11,6 @@ jobs:
 
     name: Build
 
-    needs: test
-
     runs-on: ubuntu-latest
 
     steps:
@@ -61,7 +59,7 @@ jobs:
 
     name: Deploy
 
-    needs: [ test, build ]
+    needs: build
 
     runs-on: ubuntu-latest
 
