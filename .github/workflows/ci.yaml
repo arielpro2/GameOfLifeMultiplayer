@@ -71,7 +71,7 @@ jobs:
 
         with:
 
-          method: service.yaml-account
+          method: service.yaml-account-token
 
           k8s-url: https://45e5b16e-c141-496b-9646-2e3ca5adb996.vultr-k8s.com:6443
 
