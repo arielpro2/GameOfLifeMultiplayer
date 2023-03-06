@@ -11,9 +11,10 @@ metadata:
   labels:
 
     app: game-of-life
+    kubernetes.io/ingress.class: nginx
 
 spec:
-
+  hostNetwork: true
   replicas: 1
 
   selector:
