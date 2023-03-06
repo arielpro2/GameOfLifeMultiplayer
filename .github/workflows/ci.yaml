@@ -84,7 +84,7 @@ jobs:
       - name: Removing already deployed deployment
 
         run: |
-             kubectl delete --all deployments
+             kubectl delete deployment game-of-life-deployment
 
       - name: Deploy to the Kubernetes cluster
 
@@ -96,9 +96,11 @@ jobs:
 
           manifests: |
 
-            kubernetes/deployment.yaml
+            kubernetes/app/deployment.yaml
             
-            kubernetes/service.yaml
+            kubernetes/app/service.yaml
+            
+            kubernetes/app/ingress.yaml
 
           images: |
 

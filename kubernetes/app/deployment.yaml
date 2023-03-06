@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+
+kind: Deployment
+
+metadata:
+
+  name: game-of-life-deployment
+
+  labels:
+
+    app: game-of-life
+
+spec:
+  replicas: 3
+
+  selector:
+
+    matchLabels:
+
+      app: game-of-life
+
+  template:
+
+    metadata:
+
+      labels:
+
+        app: game-of-life
+
+    spec:
+      containers:
+
+        - name: game-of-life
+
+          image: ghcr.io/arielpro2/game-of-life-multiplayer:latest
+
+          ports:
+
+            - containerPort: 5000
+
+          env:
+
+            - name: REDIS_HOST
+
+              valueFrom:
+
+                secretKeyRef:
+
+                  name: mysecret
+
+                  key: REDIS_HOST
+
+                  optional: false
+
+            - name: REDIS_PASSWORD
+
+              valueFrom:
+
+                secretKeyRef:
+
+                  name: mysecret
+
+                  key: REDIS_PASSWORD
+
+                  optional: false
+
+            - name: REDIS_PORT
+
+              valueFrom:
+
+                secretKeyRef:
+
+                  name: mysecret
+
+                  key: REDIS_PORT
+
+                  optional: false
+
+
+      imagePullSecrets:
+
+        - name: github-container-registry

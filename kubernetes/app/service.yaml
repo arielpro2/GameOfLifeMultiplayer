@@ -1,13 +1,21 @@
 apiVersion: v1
+
 kind: Service
+
 metadata:
-  name: game-of-life-service
+
+    name: game-of-life-service
 
 spec:
-    type: LoadBalancer
+
     selector:
+
         app: game-of-life
+
     ports:
+
         - name: http
+
           port: 80
+
           targetPort: 5000
