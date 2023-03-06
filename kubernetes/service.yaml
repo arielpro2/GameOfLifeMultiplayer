@@ -6,7 +6,7 @@ metadata:
 spec:
     type: LoadBalancer
     selector:
-        name: game-of-life
+        app: game-of-life
     ports:
         - name: http
           port: 80
