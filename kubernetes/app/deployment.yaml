@@ -46,7 +46,7 @@ spec:
 
                 secretKeyRef:
 
-                  name: mysecret
+                  name: game-of-life-secret
 
                   key: REDIS_HOST
 
@@ -58,7 +58,7 @@ spec:
 
                 secretKeyRef:
 
-                  name: mysecret
+                  name: game-of-life-secret
 
                   key: REDIS_PASSWORD
 
@@ -70,7 +70,7 @@ spec:
 
                 secretKeyRef:
 
-                  name: mysecret
+                  name: game-of-life-secret
 
                   key: REDIS_PORT
 
