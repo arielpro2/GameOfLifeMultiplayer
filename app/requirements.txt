@@ -1,1 +1,5 @@
 flask
+redis
+flask_socketio
+flask_caching
+numpy

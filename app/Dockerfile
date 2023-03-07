@@ -13,14 +13,6 @@ RUN apt-get -y install \
 
 WORKDIR /app
 
-# If running locally, disable redis
-ENV RUNNING_IN_KUBERNETES=false
-RUN if [ -n "$KUBERNETES_SERVICE_HOST" ]; then \
-        export DEBUG=false; \
-    else \
-        export DEBUG=true; \
-    fi
-
 COPY requirements.txt /app/requirements.txt
 RUN pip install -r requirements.txt --src /usr/local/src
 
