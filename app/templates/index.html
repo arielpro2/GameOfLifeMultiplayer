@@ -1,17 +1,111 @@
 <!DOCTYPE html>
 <html>
-   <head><title>Hello world</title></head>
+   <head>
+       <title>Hello world</title>
+       <style>
+             #snackbar {
+              visibility: hidden; /* Hidden by default. Visible on click */
+              min-width: 250px; /* Set a default minimum width */
+              margin-left: -125px; /* Divide value of min-width by 2 */
+              background-color: #333; /* Black background color */
+              color: #fff; /* White text color */
+              text-align: center; /* Centered text */
+              border-radius: 2px; /* Rounded borders */
+              padding: 16px; /* Padding */
+              position: fixed; /* Sit on top of the screen */
+              z-index: 1; /* Add a z-index if needed */
+              left: 50%; /* Center the snackbar */
+              bottom: 30px; /* 30px from the bottom */
+            }
+
+            /* Show the snackbar when clicking on a button (class added with JavaScript) */
+            #snackbar.show {
+              visibility: visible; /* Show the snackbar */
+              /* Add animation: Take 0.5 seconds to fade in and out the snackbar.
+              However, delay the fade out process for 2.5 seconds */
+              -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+              animation: fadein 0.5s, fadeout 0.5s 2.5s;
+            }
+
+            /* Animations to fade the snackbar in and out */
+            @-webkit-keyframes fadein {
+              from {bottom: 0; opacity: 0;}
+              to {bottom: 30px; opacity: 1;}
+            }
+
+            @keyframes fadein {
+              from {bottom: 0; opacity: 0;}
+              to {bottom: 30px; opacity: 1;}
+            }
+
+            @-webkit-keyframes fadeout {
+              from {bottom: 30px; opacity: 1;}
+              to {bottom: 0; opacity: 0;}
+            }
+
+            @keyframes fadeout {
+              from {bottom: 30px; opacity: 1;}
+              to {bottom: 0; opacity: 0;}
+            }
+       </style>
+   </head>
    <script src="https://cdn.socket.io/3.1.3/socket.io.min.js" integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh" crossorigin="anonymous"></script>
+   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
    <script>
-      var socket = io();
-      socket.on('join_room',function(data){
-         document.body.innerHTML = '';
-         document.write(JSON.stringify(data));
+   const socket = io({transports: ['websocket'],upgrade: false});
+    $(document).ready(function() {
+      socket.on('room_info',function(data){
+           const myNode = document.body;
+          while (myNode.firstChild) {
+            myNode.removeChild(myNode.lastChild);
+          }
+         document.body.insertAdjacentHTML('beforeend',JSON.stringify(data));
+         if (data['room_admin_id'] == socket.id){
+            document.body.insertAdjacentHTML('beforeend','<br><button type="button" id="init_game_button">Start game</button>');
+         }
       });
-      socket.on('init_game',function(data){
-         document.body.innerHTML = '';
-         document.write(JSON.stringify(data));
+      socket.on('message',function(data){
+           const myNode = document.body;
+          while (myNode.firstChild) {
+            myNode.removeChild(myNode.lastChild);
+          }
+         document.body.insertAdjacentHTML('beforeend',JSON.stringify(data));
       });
+      socket.on('ping',function(data, fn){
+         fn(socket.id);
+      });
+      socket.on('error',function(data){
+         var x = document.getElementById("snackbar");
+         if (x){x.remove();};
+
+         document.body.insertAdjacentHTML('beforeend','<div id="snackbar">'+data['message']+'</div>');
+         var x = document.getElementById("snackbar");
+         x.className = "show";
+         setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+      });
+
+      $('#join_room_button').click(function(){
+       socket.emit('join_room', $('#join_form_alias').val(),$('#join_form_room_id').val());
+       return true;
+     });
+     $('#create_room_button').click(function(){
+       socket.emit('create_room', $('#create_form_room_alias').val(),$('#create_form_room_iterations').val());
+       return true;
+     });
+     $('body').on('click', '#init_game_button', function(){
+       socket.emit('init_game');
+       return true;
+     });
+    });
    </script>
-   <body></body>
+   <body>
+       Nickname: <input type="text" id="join_form_alias"><br>
+       Room number: <input type="text" id="join_form_room_id"><br>
+       <button type="button" id="join_room_button">Join room</button>
+       <br>
+       <br>
+       Nickname: <input type="text" id="create_form_room_alias"><br>
+       Iterations: <input type="text" id="create_form_room_iterations"><br>
+       <button type="button" id="create_room_button">Create room</button>
+   </body>
 </html>

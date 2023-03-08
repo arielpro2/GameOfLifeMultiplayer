@@ -78,5 +78,5 @@ spec:
 
 
       imagePullSecrets:
-
         - name: github-container-registry
+
