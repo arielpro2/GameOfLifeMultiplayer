@@ -28,7 +28,7 @@ try:
     REDIS_PORT = os.environ.get('REDIS_PORT').strip()
 
     cache = Cache(config={'CACHE_TYPE': 'RedisCache','CACHE_REDIS_HOST':REDIS_HOST,'CACHE_REDIS_PORT':REDIS_PORT,'CACHE_REDIS_PASSWORD':REDIS_PASSWORD})
-    socketio = flask_socketio.SocketIO(app, message_queue=f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0')
+    socketio = flask_socketio.SocketIO(app, message_queue=f'redis://default:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0')
     app.logger.info('Running cache on redis host: '+REDIS_HOST)
 except:
     cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
