@@ -1,3 +1,5 @@
+import math
+
 async_mode = None
 
 if async_mode is None:
@@ -70,11 +72,32 @@ except:
 
 cache.init_app(app)
 
-def decode_rle(rle_str):
-    return ''.join(c * int(n or 1) for c, n in zip(rle_str[::2], rle_str[1::2]))
+def decode_rle(rle_string):
+    decoded_string = ''
+    count = ''
+    character_before = rle_string[0]
+    for i in rle_string[1:]+'B':
+        if i.isdigit():
+            count += i
+        else:
+            decoded_string += character_before * (int(count))
+            count = ''
+            character_before = i
+    return decoded_string
 
-def encode_rle(str):
-    return "".join([f"{str[i]}{len(list(group))}" for i, group in itertools.groupby(str)])
+
+def encode_rle(string):
+    encoded_string = ''
+    count = 1
+    character_before = string[0]
+    for i in string[1:]+' ':
+        if i == character_before:
+            count += 1
+        else:
+            encoded_string += character_before + str(count)
+            count = 1
+            character_before = i
+    return encoded_string
 
 def string2array(board):
     return np.array(list(board)).reshape(50, 50) == "T"
@@ -92,7 +115,7 @@ def clear_room_cache(room_id):
 
 def end_game_soon(room_id):
     with app.test_request_context('/'):
-        emit('error', {'message': 'A user has disconnected in middle of the game.'}, room=room_id, namespace='/')
+        emit('error', {'message': 'The game ended prematurely because the admin left or someone left in the middle of the game.','end_game':True}, room=room_id, namespace='/')
     clear_room_cache(room_id)
 
 def clear_player_cache(sid):
@@ -148,7 +171,7 @@ def create_room(alias, iterations):
     cache.set('users:alias#' + request.sid, alias)
     cache.set('rooms:iterations#'+room_id,iterations)
     global_users.active_users.append(request.sid)
-    print(alias, "Created a room")
+    print(alias, "Created room "+room_id)
     emit('room_info', {'room': room_id,'room_admin':alias, 'room_admin_id':request.sid,'users':[cache.get('users:alias#'+request.sid)]}, room=room_id)
 
 @socketio.on('join_room')
@@ -162,7 +185,7 @@ def join_room(alias,room_id):
     cache.set('users:room#' + request.sid, room_id)
     cache.set('users:alias#' + request.sid, alias)
     global_users.active_users.append(request.sid)
-    print(alias, "Joined a room")
+    print(alias, "Joined room "+room_id)
     emit('room_info', {'room': room_id,'room_admin':cache.get('users:alias#'+users[0]),'room_admin_id':users[0],'users':[cache.get('users:alias#'+user) for user in users+[request.sid]]}, room=room_id)
 
 @socketio.on('init_game')
@@ -196,17 +219,17 @@ def send_board(board):
     if game_board is None or request.sid not in users_left:
         emit('error', {'message': 'Game hasn\'t started yet.'}, broadcast=False)
         return
-    cache.set('rooms:board#'+room_id,np.logical_and(cache.get('rooms:board#'+room_id),string2array(decode_rle(board))))
-    cache.set('rooms:users-left#'+room_id, [sid for sid in 'rooms:users-left#'+room_id if sid != request.sid])
+    cache.set('rooms:board#'+room_id,np.logical_or(cache.get('rooms:board#'+room_id),string2array(decode_rle(board))))
+    cache.set('rooms:users-left#'+room_id, [sid for sid in users_left if sid != request.sid])
     if len(cache.get('rooms:users-left#'+room_id)) == 0:
         board_array = cache.get('rooms:board#'+room_id)
-        board_string = np.array2string(board_array, separator='').replace(' ', '').replace('\n').replace('0', 'F').replace('1', 'T')
-        emit('game_start', {'room': room_id, 'game_board':encode_rle(board_string), 'iterations':cache.get('rooms:iterations#'+room_id)}, room=room_id)
+        board_string = ''.join(['T' if elem else 'F' for elem in list(board_array.flatten())])
+        iterations = cache.get('rooms:iterations#'+room_id)
+        users = cache.get('rooms:users#' + room_id)
+        print('Game started for room '+room_id)
+        emit('game_start', {'room': room_id, 'game_board':encode_rle(board_string), 'iterations':iterations,'room_admin':cache.get('users:alias#'+users[0]),'room_admin_id':users[0],'users':[cache.get('users:alias#'+user) for user in users]}, room=room_id)
         cache.delete('rooms:board#' + room_id)
         cache.delete('rooms:users-left#' + room_id)
-
-
-
 
 
 
