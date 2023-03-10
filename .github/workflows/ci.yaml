@@ -99,8 +99,6 @@ jobs:
             kubernetes/app/deployment.yaml
             
             kubernetes/app/service.yaml
-            
-            kubernetes/app/ingress.yaml
 
           images: |
 
