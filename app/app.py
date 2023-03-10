@@ -1,4 +1,4 @@
-import math
+
 
 async_mode = None
 
@@ -30,14 +30,12 @@ elif async_mode == 'gevent':
     from gevent import monkey
     monkey.patch_all()
 
-import itertools
 import os
 import time
 from random import randint
 import numpy as np
 import flask_socketio
 from flask import Flask, request, render_template
-from flask_socketio import SocketIO,emit,send
 from flask_caching import Cache
 import threading
 import logging
@@ -115,7 +113,7 @@ def clear_room_cache(room_id):
 
 def end_game_soon(room_id):
     with app.test_request_context('/'):
-        emit('error', {'message': 'The game ended prematurely because the admin left or someone left in the middle of the game.','end_game':True}, room=room_id, namespace='/')
+        socketio.emit('error', {'message': 'The game ended prematurely because the admin left or someone left in the middle of the game.','end_game':True}, room=room_id, namespace='/')
     clear_room_cache(room_id)
 
 def clear_player_cache(sid):
@@ -132,7 +130,7 @@ def clear_player_cache(sid):
         cache.delete('users:room#' + sid)
         cache.delete('users:alias#' + sid)
         with app.test_request_context('/'):
-            emit('room_info', {'room': room_id,'room_admin':cache.get('users:alias#'+users[0]),'room_admin_id':users[0],'users':[cache.get('users:alias#'+user) for user in users]}, room=room_id,namespace='/')
+            socketio.emit('room_info', {'room': room_id,'room_admin':cache.get('users:alias#'+users[0]),'room_admin_id':users[0],'users':[cache.get('users:alias#'+user) for user in users]}, room=room_id,namespace='/')
 
 #Every 1 second ping every connected user to dynamically remove players from rooms when inactive
 class global_users:
@@ -160,7 +158,7 @@ def index():
 @socketio.on('create_room')
 def create_room(alias, iterations):
     if cache.get('users:room#'+request.sid) or not iterations:
-        emit('error', {'message': 'Couldn\'t create room.'}, broadcast=False)
+        socketio.emit('error', {'message': 'Couldn\'t create room.'}, broadcast=False)
         return
     room_id = randint(1000,9999)
     while room_id in socketio.server.manager.rooms['/']:
@@ -173,13 +171,13 @@ def create_room(alias, iterations):
     cache.set('rooms:iterations#'+room_id,iterations)
     global_users.active_users.append(request.sid)
     print(alias, "Created room "+room_id)
-    emit('room_info', {'room': room_id,'room_admin':alias, 'room_admin_id':request.sid,'users':[cache.get('users:alias#'+request.sid)]}, room=room_id)
+    socketio.emit('room_info', {'room': room_id,'room_admin':alias, 'room_admin_id':request.sid,'users':[cache.get('users:alias#'+request.sid)]}, room=room_id)
 
 @socketio.on('join_room')
 def join_room(alias,room_id):
     users = cache.get('rooms:users#'+room_id)
     if not users or request.sid in users or len(users) >= MAX_LOBBY_PLAYERS or cache.get('rooms:board#'+room_id) or cache.get('users:room#'+request.sid):
-        emit('error', {'message': 'Couldn\'t join room.'}, broadcast=False)
+        socketio.emit('error', {'message': 'Couldn\'t join room.'}, broadcast=False)
         return
     flask_socketio.join_room(room_id)
     cache.set('rooms:users#'+room_id, users+[request.sid])
@@ -187,30 +185,30 @@ def join_room(alias,room_id):
     cache.set('users:alias#' + request.sid, alias)
     global_users.active_users.append(request.sid)
     print(alias, "Joined room "+room_id)
-    emit('room_info', {'room': room_id,'room_admin':cache.get('users:alias#'+users[0]),'room_admin_id':users[0],'users':[cache.get('users:alias#'+user) for user in users+[request.sid]]}, room=room_id)
+    socketio.emit('room_info', {'room': room_id,'room_admin':cache.get('users:alias#'+users[0]),'room_admin_id':users[0],'users':[cache.get('users:alias#'+user) for user in users+[request.sid]]}, room=room_id)
 
 @socketio.on('init_game')
 def init_game():
     room_id = cache.get('users:room#' + request.sid)
     if not room_id:
-        emit('error', {'message': 'User not in a room.'}, broadcast=False)
+        socketio.emit('error', {'message': 'User not in a room.'}, broadcast=False)
         return
     users = cache.get('rooms:users#' + room_id)
     if not users or len(users) < 2 or users[0] != request.sid:
-        emit('error', {'message': 'User is not an admin or game has less than two players.'}, broadcast=False)
+        socketio.emit('error', {'message': 'User is not an admin or game has less than two players.'}, broadcast=False)
         return
 
     #Initiating the room game
     cache.set('rooms:board#' + room_id, np.zeros((GRID_SIZE, GRID_SIZE), dtype=bool))
     cache.set('rooms:users-left#' + room_id, users)
     for idx,user in enumerate(users):
-        send({'room': room_id, 'position': idx, 'player_count':len(users)}, to=user)
+        socketio.send({'room': room_id, 'position': idx, 'player_count':len(users)}, to=user)
 
 @socketio.on('send_board')
 def send_board(board):
     room_id = cache.get('users:room#'+request.sid)
     if not room_id:
-        emit('error', {'message': 'User not in a room.'}, broadcast=False)
+        socketio.emit('error', {'message': 'User not in a room.'}, broadcast=False)
         return
     if board == 'False':
         end_game_soon(room_id)
@@ -218,7 +216,7 @@ def send_board(board):
     game_board = cache.get('rooms:board#' + room_id)
     users_left = cache.get('rooms:users-left#' + room_id)
     if game_board is None or request.sid not in users_left:
-        emit('error', {'message': 'Game hasn\'t started yet.'}, broadcast=False)
+        socketio.emit('error', {'message': 'Game hasn\'t started yet.'}, broadcast=False)
         return
     cache.set('rooms:board#'+room_id,np.logical_or(cache.get('rooms:board#'+room_id),string2array(decode_rle(board))))
     cache.set('rooms:users-left#'+room_id, [sid for sid in users_left if sid != request.sid])
@@ -228,7 +226,7 @@ def send_board(board):
         iterations = cache.get('rooms:iterations#'+room_id)
         users = cache.get('rooms:users#' + room_id)
         print('Game started for room '+room_id)
-        emit('game_start', {'room': room_id, 'game_board':encode_rle(board_string), 'iterations':iterations,'room_admin':cache.get('users:alias#'+users[0]),'room_admin_id':users[0],'users':[cache.get('users:alias#'+user) for user in users]}, room=room_id)
+        socketio.emit('game_start', {'room': room_id, 'game_board':encode_rle(board_string), 'iterations':iterations,'room_admin':cache.get('users:alias#'+users[0]),'room_admin_id':users[0],'users':[cache.get('users:alias#'+user) for user in users]}, room=room_id)
         cache.delete('rooms:board#' + room_id)
         cache.delete('rooms:users-left#' + room_id)
 
