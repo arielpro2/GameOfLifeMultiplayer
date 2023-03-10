@@ -203,7 +203,7 @@ def init_game():
     cache.set('rooms:board#' + room_id, np.zeros((GRID_SIZE, GRID_SIZE), dtype=bool))
     cache.set('rooms:users-left#' + room_id, users)
     for idx,user in enumerate(users):
-        send({'room': room_id, 'position': idx}, to=user)
+        send({'room': room_id, 'position': idx, 'player_count':len(users)}, to=user)
 
 @socketio.on('send_board')
 def send_board(board):

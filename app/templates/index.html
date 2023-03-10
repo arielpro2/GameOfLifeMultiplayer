@@ -51,12 +51,25 @@
               fill: #ccc;
               cursor: not-allowed;
             }
-
+            .filled {
+              opacity: 1;
+            }
+            .empty {
+              opacity: 0.5;
+            }
        </style>
    </head>
    <script src="https://cdn.socket.io/3.1.3/socket.io.min.js" integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh" crossorigin="anonymous"></script>
    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
    <script src="https://d3js.org/d3.v7.min.js"></script>
+   <script type="module">
+      import * as tf from 'https://cdn.skypack.dev/@tensorflow/tfjs'
+      import * as sk from 'https://cdn.skypack.dev/scikitjs'
+      sk.setBackend(tf)
+
+      // or alternatively you can pull the bundle from unpkg
+      // import * as sk from "https://unpkg.com/scikitjs/dist/web index.min.js"
+   </script>
    <script>
    const socket = io({transports: ['websocket'],upgrade: false});
    var player_count = 0;
@@ -122,11 +135,11 @@
 
       return coordinates;
     }
-   function runGameOfLife(data) {
+   function runGameOfLife(data, grid) {
       const cellWidth = 10;
       const cellHeight = 10;
-      const rows = 50;
-      const cols = 50;
+      const rows = grid.length;
+      const cols = grid[0].length;
       const generations = parseInt(data['iterations']);
       const genTime = 0.1;  // Seconds
 
@@ -135,25 +148,80 @@
           .attr('height', cellHeight * rows);
 
       function update(selection, data) {
-        const cells = selection
-          .selectAll("rect").data(data);
-        cells.exit().remove();
-        cells.enter().append("rect")
-            .attr('width', cellWidth)
-            .attr('height', cellHeight)
-            .attr("stroke", "black")
-            .attr("stroke-width", 1)
-          .merge(cells)
-            .attr('x', d => d[0] * cellWidth)
-            .attr('y', d => d[1] * cellHeight)
-            .style("fill", "black");
-      }
+          const cells = selection.selectAll("rect.filled").data(data);
+
+          cells.exit().remove();
+
+          const emptyCells = selection.selectAll("rect.empty").data(getEmptyCoordinates(data));
+
+          emptyCells.exit().remove();
+
+            cells.enter().append("rect")
+                .attr('width', cellWidth)
+                .attr('height', cellHeight)
+                .attr("stroke", "black")
+                .attr("stroke-width", 1)
+                .classed('filled', true) // Add class for filled cells
+                .merge(cells)
+                .attr('x', d => d[0] * cellWidth)
+                .attr('y', d => d[1] * cellHeight)
+                .style("fill", d => {
+                    const value = grid[d[0]][d[1]];
+                    const colors = ["#ffcc00", "#cc0000", "#00cc00", "#0000cc", "#cc00cc", "#00cccc", "#ff6666", "#66ff66", "#6666ff", "#cccccc"];
+                    return colors[value % colors.length];
+                })
+                .attr("stroke-width", 1)
+                .attr("stroke", "black");
+
+
+            emptyCells.enter().append("rect")
+                .attr('width', cellWidth)
+                .attr('height', cellHeight)
+                .attr("stroke", "black")
+                .attr("stroke-width", 1)
+                .classed('empty', true) // Add class for empty cells
+                .merge(emptyCells)
+                .attr('x', d => d[0] * cellWidth)
+                .attr('y', d => d[1] * cellHeight)
+                .style("fill", d => {
+                    const value = grid[d[0]][d[1]];
+                    const colors = ["#ffcc00", "#cc0000", "#00cc00", "#0000cc", "#cc00cc", "#00cccc", "#ff6666", "#66ff66", "#6666ff", "#cccccc"];
+                    return colors[value % colors.length];
+                })
+                .attr("stroke-width", 1)
+                .attr("stroke", "black")
+                .classed('filled', false)
+                .classed('empty', true);
+        }
+
+      function getEmptyCoordinates(data) {
+          const coords = [];
+
+          for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < cols; j++) {
+              const coord = [i, j];
+              if (!data.some(d => d[0] == i && d[1] == j)) {
+                coords.push(coord);
+              }
+            }
+          }
+
+          return coords;
+        }
 
       let gen = pattern = decodeAndIndex(data['game_board'],'T');
       const end = generations * genTime * 1000;
       const interval = genTime * 1000;
       d3.select('#glfield').call(update, gen);
-      // return
+      gen = tick(gen);
+      d3.select('#glfield').call(update, gen);
+      gen = tick(gen);
+      d3.select('#glfield').call(update, gen);
+      gen = tick(gen);
+      d3.select('#glfield').call(update, gen);
+      gen = tick(gen);
+      d3.select('#glfield').call(update, gen);
+      gen = tick(gen);
       const t = d3.interval(elapsed => {
         if (elapsed > end || !gen.length) t.stop();
         gen = tick(gen);
@@ -189,9 +257,9 @@
         .attr("stroke", "black")
         .attr("stroke-width", 1)
         .classed("unpaintable", function(d) {
-          const cellX = (d % gridSize) * cellSize;
-          const cellY = Math.floor(d / gridSize) * cellSize;
-          return forbiddenPoints.some(([x, y]) => x === cellX && y === cellY);
+          const cellX = (d % gridSize);
+          const cellY = Math.floor(d / gridSize);
+          return forbiddenPoints.some(([x, y]) => x == cellX && y == cellY);
         })
         .on("click", function() {
           const cell = d3.select(this);
@@ -228,6 +296,44 @@
     }
 
     $(document).ready(function() {
+        function is_angle_between(angle, start_angle, end_angle) {
+            // Determine the smallest angle between start_angle and end_angle
+            let smallest_angle = (end_angle - start_angle) % 360;
+            if (smallest_angle < 0) {
+            smallest_angle += 360;
+            }
+
+            // Determine the difference between start_angle and angle
+            let angle_diff = (angle - start_angle) % 360;
+            if (angle_diff < 0) {
+            angle_diff += 360;
+            }
+
+            // Check if angle is between start_angle and end_angle clockwise
+            return angle_diff <= smallest_angle;
+            }
+
+            function partition_grid(n, k) {
+              let grid = new Array(n).fill().map(() => new Array(n).fill(0));
+              let angles = Array.from({length: k}, (_, i) => (i + 1) * (360 / k));
+              let lst = angles.slice(0, -1).map((angle, i) => [angle, angles[i + 1]])
+                .concat([[angles[k - 1], angles[0]]]);
+
+              for (let i = 0; i < n; i++) {
+                for (let j = 0; j < n; j++) {
+                  let angle = Math.atan2(n / 2 - i, n / 2 - j);
+                  angle = angle * 180 / Math.PI;
+                  for (let idx = 0; idx < lst.length; idx++) {
+                    let [t0, t1] = lst[idx];
+                    if (is_angle_between(angle, t0, t1)) {
+                      grid[i][j] = idx;
+                    }
+                  }
+                }
+              }
+
+              return grid;
+            }
       socket.on('room_info',function(data){
            const myNode = document.body;
           while (myNode.firstChild) {
@@ -270,12 +376,25 @@
           // Emit the encoded string using socket.io
           socket.emit("send_board", encodedString);
         }
+        function find_coordinates(grid, K) {
+          let coordinates = [];
+          for (let i = 0; i < grid.length; i++) {
+            for (let j = 0; j < grid[0].length; j++) {
+              if (grid[i][j] != K) {
+                coordinates.push([i, j]);
+              }
+            }
+          }
+          return coordinates;
+        }
       socket.on('message',function(data){
            const myNode = document.body;
           while (myNode.firstChild) {
             myNode.removeChild(myNode.lastChild);
           }
-          createGrid(50,10,[],encodeAndEmit);
+          grid = partition_grid(50,data['player_count']);
+
+          createGrid(50,10,find_coordinates(grid,data['position']),encodeAndEmit);
           });
 
       socket.on('game_start',function(data){
@@ -284,7 +403,8 @@
             myNode.removeChild(myNode.lastChild);
           }
          document.body.insertAdjacentHTML('beforeend','<svg id="glfield"></svg>');
-         runGameOfLife(data);
+
+         runGameOfLife(data,partition_grid(50,data['users'].length));
 
       });
       socket.on('ping',function(data, fn){
