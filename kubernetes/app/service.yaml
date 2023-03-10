@@ -9,14 +9,9 @@ metadata:
 spec:
 
     selector:
-
-        app: game-of-life
-
-    ports:
-
-        - name: http
-          protocol: TCP
-          port: 80
-          targetPort: 5000
-          nodePort: 32321
+      app: game-of-life
     type: NodePort
+    ports:
+      - name: http
+        port: 80
+        targetPort: 5000
