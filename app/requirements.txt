@@ -3,3 +3,7 @@ redis
 flask_socketio
 flask_caching
 numpy
+eventlet
+gevent
+Werkzeug
+greenlet
