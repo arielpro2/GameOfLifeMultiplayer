@@ -139,7 +139,6 @@ class global_users:
     answered_users = []
 
 def ack(value):
-    app.logger.info('Got pong, '+value)
     global_users.answered_users.append(value)
 
 def ping():
