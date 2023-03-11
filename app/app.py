@@ -176,7 +176,7 @@ def create_room(alias, iterations):
     cache.set('users:alias#' + request.sid, alias)
     cache.set('rooms:iterations#'+room_id,iterations)
     global_users.active_users.append(request.sid)
-    app.logger.info(alias, "Created room "+room_id)
+    app.logger.info(alias+ " Created room "+room_id)
     socketio.emit('room_info', {'room': room_id,'room_admin':alias, 'room_admin_id':request.sid,'users':[cache.get('users:alias#'+request.sid)]}, room=room_id)
 
 @socketio.on('join_room')
@@ -190,7 +190,7 @@ def join_room(alias,room_id):
     cache.set('users:room#' + request.sid, room_id)
     cache.set('users:alias#' + request.sid, alias)
     global_users.active_users.append(request.sid)
-    app.logger.info(alias, "Joined room "+room_id)
+    app.logger.info(alias+ " Joined room "+room_id)
     socketio.emit('room_info', {'room': room_id,'room_admin':cache.get('users:alias#'+users[0]),'room_admin_id':users[0],'users':[cache.get('users:alias#'+user) for user in users+[request.sid]]}, room=room_id)
 
 @socketio.on('init_game')
