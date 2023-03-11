@@ -37,10 +37,8 @@ import numpy as np
 import flask_socketio
 from flask import Flask, request, render_template
 from flask_caching import Cache
-import threading
 import logging
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
+logging.basicConfig(level=logging.DEBUG)
 
 MAX_LOBBY_PLAYERS = 8
 GRID_SIZE = 50
