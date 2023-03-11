@@ -134,6 +134,7 @@ def clear_player_cache(sid):
 
 #Every 1 second ping every connected user to dynamically remove players from rooms when inactive
 class global_users:
+    all_users = []
     active_users = []
     answered_users = []
 
@@ -142,7 +143,8 @@ def ack(value):
     global_users.answered_users.append(value)
 
 def ping():
-    socketio.emit('ping', {}, callback=ack, room='ALL', broadcast=True)
+    for user in global_users.all_users:
+        socketio.emit('ping', {}, callback=ack, room=user)
 
     time.sleep(1)
     for disconnected_user in list(set(global_users.active_users) - set(global_users.answered_users)):
@@ -160,6 +162,7 @@ def index():
 def connect():
     app.logger.info(request.sid + ' Connected.')
     flask_socketio.join_room('ALL')
+    global_users.all_users.append(request.sid)
 
 @socketio.on('create_room')
 def create_room(alias, iterations):
