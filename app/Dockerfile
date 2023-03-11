@@ -19,4 +19,4 @@ RUN pip install -r requirements.txt --src /usr/local/src
 COPY . .
 
 EXPOSE 5000
-CMD [ "uwsgi", "--ini", "uwsgi.ini" ]
+CMD [ "uwsgi", "--ini", "uwsgi.ini" ,"--enable-threads"]
