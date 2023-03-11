@@ -1,4 +1,4 @@
-
+import socketio
 
 async_mode = None
 
@@ -158,6 +158,7 @@ def index():
 
 @socketio.on('connect')
 def connect():
+    app.logger.info(request.sid + ' Connected.')
     flask_socketio.join_room('ALL')
 
 @socketio.on('create_room')
