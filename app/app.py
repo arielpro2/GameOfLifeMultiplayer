@@ -141,7 +141,7 @@ def ack(value):
     global_users.answered_users.append(value)
 
 def ping():
-    socketio.emit('ping', {}, callback=ack)
+    socketio.emit('ping', {}, callback=ack,broadcast=True,room=None)
 
     time.sleep(1)
     for disconnected_user in list(set(global_users.active_users) - set(global_users.answered_users)):
