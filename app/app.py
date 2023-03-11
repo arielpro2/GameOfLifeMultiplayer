@@ -158,7 +158,7 @@ def index():
 
 @socketio.on('connect')
 def connect():
-    socketio.join_room('ALL')
+    flask_socketio.join_room('ALL')
 
 @socketio.on('create_room')
 def create_room(alias, iterations):
@@ -169,7 +169,7 @@ def create_room(alias, iterations):
     while room_id in socketio.server.manager.rooms['/']:
         room_id = randint(1000, 9999)
     room_id = str(room_id)
-    socketio.join_room(room_id)
+    flask_socketio.join_room(room_id)
     cache.set('rooms:users#'+room_id,[request.sid])
     cache.set('users:room#'+request.sid, room_id)
     cache.set('users:alias#' + request.sid, alias)
@@ -184,7 +184,7 @@ def join_room(alias,room_id):
     if not users or request.sid in users or len(users) >= MAX_LOBBY_PLAYERS or cache.get('rooms:board#'+room_id) or cache.get('users:room#'+request.sid):
         socketio.emit('error', {'message': 'Couldn\'t join room.'}, broadcast=False)
         return
-    socketio.join_room(room_id)
+    flask_socketio.join_room(room_id)
     cache.set('rooms:users#'+room_id, users+[request.sid])
     cache.set('users:room#' + request.sid, room_id)
     cache.set('users:alias#' + request.sid, alias)
