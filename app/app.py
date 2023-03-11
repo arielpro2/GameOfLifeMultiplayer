@@ -140,8 +140,9 @@ class global_users:
 def ack(value):
     global_users.answered_users.append(value)
 
+
 def ping():
-    socketio.emit('ping', {}, callback=ack,broadcast=True,room=None)
+    socketio.emit('ping', {}, callback=ack,broadcast=True, room='ALL', namespace='/')
 
     time.sleep(1)
     for disconnected_user in list(set(global_users.active_users) - set(global_users.answered_users)):
@@ -154,6 +155,10 @@ def ping():
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@socketio.on('connect')
+def connect():
+    flask_socketio.join_room('ALL')
 
 @socketio.on('create_room')
 def create_room(alias, iterations):
