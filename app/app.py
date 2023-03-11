@@ -175,7 +175,7 @@ def create_room(alias, iterations):
     cache.set('users:alias#' + request.sid, alias)
     cache.set('rooms:iterations#'+room_id,iterations)
     global_users.active_users.append(request.sid)
-    print(alias, "Created room "+room_id)
+    app.logger.info(alias, "Created room "+room_id)
     socketio.emit('room_info', {'room': room_id,'room_admin':alias, 'room_admin_id':request.sid,'users':[cache.get('users:alias#'+request.sid)]}, room=room_id)
 
 @socketio.on('join_room')
@@ -189,7 +189,7 @@ def join_room(alias,room_id):
     cache.set('users:room#' + request.sid, room_id)
     cache.set('users:alias#' + request.sid, alias)
     global_users.active_users.append(request.sid)
-    print(alias, "Joined room "+room_id)
+    app.logger.info(alias, "Joined room "+room_id)
     socketio.emit('room_info', {'room': room_id,'room_admin':cache.get('users:alias#'+users[0]),'room_admin_id':users[0],'users':[cache.get('users:alias#'+user) for user in users+[request.sid]]}, room=room_id)
 
 @socketio.on('init_game')
@@ -230,7 +230,7 @@ def send_board(board):
         board_string = ''.join(['T' if elem else 'F' for elem in list(board_array.flatten())])
         iterations = cache.get('rooms:iterations#'+room_id)
         users = cache.get('rooms:users#' + room_id)
-        print('Game started for room '+room_id)
+        app.logger.info('Game started for room '+room_id)
         socketio.emit('game_start', {'room': room_id, 'game_board':encode_rle(board_string), 'iterations':iterations,'room_admin':cache.get('users:alias#'+users[0]),'room_admin_id':users[0],'users':[cache.get('users:alias#'+user) for user in users]}, room=room_id)
         cache.delete('rooms:board#' + room_id)
         cache.delete('rooms:users-left#' + room_id)
